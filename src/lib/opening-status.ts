@@ -24,7 +24,7 @@ export function getOpeningStatus(now: Date, hours: readonly OpeningHour[], timeZ
     const nextDay = (day + offset) % 7;
     const next = hours.find((entry) => entry.dayIndex === nextDay && entry.confirmed && !entry.closed);
     if (next && (offset > 0 || time < minutes(next.opens))) {
-      return `Fechado agora · abre ${offset === 0 ? "hoje" : dayNames[nextDay]} ${shortTime(next.opens)}`;
+      return `${today.closed ? "Fechado hoje" : "Fechado agora"} · abre ${offset === 0 ? "hoje" : dayNames[nextDay]} ${shortTime(next.opens)}`;
     }
   }
   return "Fechado agora";

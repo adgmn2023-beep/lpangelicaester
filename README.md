@@ -39,4 +39,4 @@ Os oito serviços usam o carrossel com scroll-snap e rotação de 5 segundos. A 
 
 A partir de 640px, os cards dos serviços têm a altura do maior card e CTAs alinhados na base. No celular, mantêm altura automática e a linha reserva a altura do maior para evitar saltos. Cada serviço define sua própria chave `icon`.
 
-Os horários confirmados são terça a sexta, 09:00–19:00; sábado, 09:00–13:00; domingo, fechado. Segunda permanece sem confirmação e sem selo. O fuso está em `site.timeZone` (`America/Sao_Paulo`); alterar apenas `confirmed` da segunda permite ativar sua configuração. Instagram confirmado: `@studioangelicaester`.
+Os horários confirmados são terça a sexta, 09:00–19:00; sábado, 09:00–13:00; domingo e segunda, fechado. As duas listas agrupam os dias fechados como "Domingo e segunda: fechado". O selo funciona todos os dias e na segunda mostra "Fechado hoje · abre ter 9:00". O JSON-LD inclui somente dias de atendimento, sem segunda. O fuso está em `site.timeZone` (`America/Sao_Paulo`). Instagram confirmado: `@studioangelicaester`.

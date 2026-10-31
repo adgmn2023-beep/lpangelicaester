@@ -46,7 +46,7 @@ function LocationSection({ hasPosts }: { hasPosts: boolean }) {
                 {site.parking.confirmed && <p>{site.parking.value}</p>}
               </div>
             </div>
-            {confirmedHours.length > 0 && <div><p className="font-semibold text-heading">Meus horários</p><ul className="mt-2 space-y-1">{confirmedHours.map(hour => <li key={hour.dayIndex} className="flex max-w-xs justify-between gap-6"><span>{hour.label}</span><span>{hour.closed ? "Fechado" : `${hour.opens} às ${hour.closes}`}</span></li>)}</ul></div>}
+            {confirmedHours.length > 0 && <div><p className="font-semibold text-heading">Meus horários</p><ul className="mt-2 space-y-1">{groupOpeningHours(site.openingHours).map(hour => <li key={hour}>{hour}</li>)}</ul></div>}
             {site.payment.confirmed && <p>{site.payment.value}</p>}{site.accessibility.confirmed && <p>{site.accessibility.value}</p>}
             {site.instagram.confirmed && <a href={site.instagram.url} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center gap-2 text-bronze-dark"><InstagramIcon className="h-5 w-5" />{site.instagram.handle}</a>}
           </div>

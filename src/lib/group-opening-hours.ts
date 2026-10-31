@@ -13,8 +13,16 @@ export function groupOpeningHours(hours: readonly OpeningHour[]) {
       groups.push({ first: hour, last: hour });
     }
   }
+  // Join confirmed closures across the Sunday/Monday boundary of the week.
+  const first = groups[0];
+  const last = groups.at(-1);
+  if (groups.length > 1 && first.first.dayIndex === 1 && last?.last.dayIndex === 0 && first.first.closed && last.last.closed) {
+    last.last = first.last;
+    groups.shift();
+  }
   return groups.map(({ first, last }) => {
-    const days = first === last ? first.label : `${first.label} a ${last.label.toLocaleLowerCase("pt-BR")}`;
+    const connector = first.closed && (last.dayIndex - first.dayIndex + 7) % 7 === 1 ? "e" : "a";
+    const days = first === last ? first.label : `${first.label} ${connector} ${last.label.toLocaleLowerCase("pt-BR")}`;
     return `${days}: ${first.closed ? "fechado" : `${first.opens}–${first.closes}`}`;
   });
 }

@@ -284,8 +284,8 @@ test("manual and Google review HTML contains at most twelve slides and never ren
 test("confirmed contact, Instagram and hours render without unconfirmed geo", () => {
   const h = harness();
   const { site, confirmedHours } = h.load("src/config/site.ts");
-  assert.equal(confirmedHours.length, 6);
-  assert(!confirmedHours.some(hour => hour.dayIndex === 1));
+  assert.equal(confirmedHours.length, 7);
+  assert(confirmedHours.some(hour => hour.dayIndex === 1 && hour.closed && hour.confirmed));
   assert.equal(site.whatsapp.phone, "5521981962851");
   assert.equal(site.whatsapp.confirmed, true);
   const Cta = h.load("src/components/whatsapp-cta.tsx").WhatsAppCta;
@@ -300,8 +300,8 @@ test("confirmed contact, Instagram and hours render without unconfirmed geo", ()
   assert(business.includes('"openingHoursSpecification"'));
   assert(business.includes('"sameAs":["https://www.instagram.com/studioangelicaester"]'));
   const data = JSON.parse(business.match(/<script[^>]*>([\s\S]*?)<\/script>/)[1]);
-  assert.equal(data.openingHoursSpecification.length, 6);
-  assert(data.openingHoursSpecification.some(hour => hour.dayOfWeek === 'Sunday' && hour.opens === '00:00' && hour.closes === '00:00'));
+  assert.equal(data.openingHoursSpecification.length, 5);
+  assert.deepEqual(Array.from(data.openingHoursSpecification, hour => hour.dayOfWeek), ['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
   assert(business.includes('"url":"https://wa.me/5521981962851"'));
 });
 
@@ -371,6 +371,7 @@ test("home renders eight service slides, secure WhatsApp actions and the confirm
   assert(!location.includes('tel:'));
   assert(!location.includes(site.phoneDisplay));
   assert(location.includes('Meus horários'));
+  assert(location.includes('Domingo e segunda: fechado'));
   assert(location.includes(site.instagram.handle));
   assert(location.includes('Como chegar'));
   assert(location.includes('Ver no Google Maps'));
@@ -388,16 +389,15 @@ test("opening status respects confirmed days, boundaries and Sao Paulo timezone"
   const { site } = h.load('src/config/site.ts');
   const { getOpeningStatus } = h.load('src/lib/opening-status.ts');
   const status = utc => getOpeningStatus(new Date(utc), site.openingHours);
-  assert.equal(status('2026-11-02T15:00:00Z'), null); // Monday, local noon.
-  assert.equal(status('2026-11-03T02:30:00Z'), null); // Still Monday in Sao Paulo.
+  assert.equal(status('2026-11-02T15:00:00Z'), 'Fechado hoje · abre ter 9:00'); // Monday, local noon.
+  assert.equal(status('2026-11-03T02:30:00Z'), 'Fechado hoje · abre ter 9:00'); // Still Monday in Sao Paulo.
   assert(status('2026-11-03T11:59:00Z').startsWith('Fechado agora'));
   assert.equal(status('2026-11-03T12:00:00Z'), 'Aberto agora · fecha às 19:00');
   assert(status('2026-11-03T22:00:00Z').startsWith('Fechado agora'));
   assert.equal(status('2026-11-07T15:59:00Z'), 'Aberto agora · fecha às 13:00');
   assert(status('2026-11-07T16:00:00Z').startsWith('Fechado agora'));
-  assert(status('2026-11-08T15:00:00Z').startsWith('Fechado agora'));
-  site.openingHours.find(hour => hour.dayIndex === 1).confirmed = true;
-  assert.equal(status('2026-11-02T15:00:00Z'), 'Aberto agora · fecha às 19:00');
+  assert.equal(status('2026-11-08T15:00:00Z'), 'Fechado hoje · abre ter 9:00');
+  for (let day = 1; day <= 7; day++) assert.equal(typeof status(`2026-11-0${day}T15:00:00Z`), 'string');
 });
 
 test("each configured service renders a distinct decorative line icon", () => {
@@ -419,14 +419,14 @@ test("footer follows mobile reading order with grouped confirmed hours", async (
   const page = await h.load('src/app/page.tsx').default();
   const html = renderToStaticMarkup(page);
   const footer = html.slice(html.indexOf('<footer'), html.indexOf('</footer>'));
-  const orderedText = [site.name, site.address.full, site.instagram.handle, 'Privacidade', 'Horário de atendimento', 'Terça a sexta: 09:00–19:00', 'Sábado: 09:00–13:00', 'Domingo: fechado', '©'];
+  const orderedText = [site.name, site.address.full, site.instagram.handle, 'Privacidade', 'Horário de atendimento', 'Terça a sexta: 09:00–19:00', 'Sábado: 09:00–13:00', 'Domingo e segunda: fechado', '©'];
   let lastIndex = -1;
   for (const text of orderedText) {
     const index = footer.indexOf(text, lastIndex + 1);
     assert(index > lastIndex, text);
     lastIndex = index;
   }
-  assert(!footer.includes('Segunda'));
+  assert(footer.includes('Domingo e segunda: fechado'));
   assert(!footer.includes('Chamar no WhatsApp'));
   assert(!footer.includes(site.phoneDisplay));
   assert.equal((footer.match(/<li\b/g) || []).length, 3);
@@ -435,16 +435,17 @@ test("footer follows mobile reading order with grouped confirmed hours", async (
   assert(footer.includes('md:row-span-2'));
 });
 
-test("grouped footer hours update when Monday is confirmed and do not span gaps", () => {
+test("grouped hours join Sunday and Monday closures and do not span unconfirmed gaps", () => {
   const h = harness();
   const { site } = h.load('src/config/site.ts');
   const { groupOpeningHours } = h.load('src/lib/group-opening-hours.ts');
   const lines = () => Array.from(groupOpeningHours(site.openingHours));
+  assert.deepEqual(lines(), ['Terça a sexta: 09:00–19:00', 'Sábado: 09:00–13:00', 'Domingo e segunda: fechado']);
+  site.openingHours.find(hour => hour.dayIndex === 1).confirmed = false;
   assert.deepEqual(lines(), ['Terça a sexta: 09:00–19:00', 'Sábado: 09:00–13:00', 'Domingo: fechado']);
   site.openingHours.find(hour => hour.dayIndex === 1).confirmed = true;
-  assert.deepEqual(lines(), ['Segunda a sexta: 09:00–19:00', 'Sábado: 09:00–13:00', 'Domingo: fechado']);
   site.openingHours.find(hour => hour.dayIndex === 3).confirmed = false;
-  assert.deepEqual(lines(), ['Segunda a terça: 09:00–19:00', 'Quinta a sexta: 09:00–19:00', 'Sábado: 09:00–13:00', 'Domingo: fechado']);
+  assert.deepEqual(lines(), ['Terça: 09:00–19:00', 'Quinta a sexta: 09:00–19:00', 'Sábado: 09:00–13:00', 'Domingo e segunda: fechado']);
 });
 
 test("photo frame is one clipped piece with stable ratio and no decorative top band", () => {
