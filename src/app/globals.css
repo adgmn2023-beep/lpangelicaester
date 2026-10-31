@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@config "../../tailwind.config.mjs";
+
+:root {
+  --font-sans: Arial;
+  --font-display: Georgia;
+  --bg: #FBF1E9;
+  --bg-soft: #F6E0D5;
+  --rose: #F3C9C0;
+  --bronze: #B8734A;
+  --bronze-dark: #8A4B2B;
+  --primary: #C98A60;
+  --bronze-light: #D9A27C;
+  --ink: #2A1A17;
+  --text-on-bg: #3A2420;
+  --muted-on-bg: #6E5247;
+  --text-on-ink: var(--bg);
+  --muted-on-ink: var(--bg-soft);
+  --line-light: var(--bronze);
+  --line-dark: var(--bronze-light);
+  --text: var(--text-on-bg);
+  --heading: var(--text-on-bg);
+  --muted: var(--muted-on-bg);
+  --accent: var(--bronze-dark);
+  --line: var(--line-light);
+  --focus: var(--bronze-dark);
+  --shadow-card: 0 16px 50px rgb(42 26 23 / 8%);
+  color-scheme: light;
+  scroll-behavior: smooth;
+  scroll-padding-top: 128px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--bronze-light);
+  color: var(--ink);
+}
+
+.theme-dark {
+  --text: var(--text-on-ink);
+  --heading: var(--text-on-ink);
+  --muted: var(--muted-on-ink);
+  --accent: var(--bronze-light);
+  --line: var(--line-dark);
+  --focus: var(--bronze-light);
+  color-scheme: dark;
+  color: var(--text);
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-contact {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:is(a, button, summary):focus-visible,
+.theme-dark :is(a, button, summary):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+@media (min-width: 768px) {
+  body { padding-bottom: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The row reserves its tallest card's space without stretching the other cards. */
+.carousel-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 86%;
+  align-items: start;
+  gap: 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+.carousel-slide { min-width: 0; scroll-snap-align: start; }
+.carousel-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--bronze-dark);
+  cursor: pointer;
+}
+@media (min-width: 640px) { .carousel-track { grid-auto-columns: calc((100% - 1rem) / 2); } }
+@media (min-width: 640px) { #servicos .carousel-track { align-items: stretch; } }
+@media (min-width: 1024px) { .carousel-track { grid-auto-columns: calc((100% - 2rem) / 3); } }
